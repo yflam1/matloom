@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Primary Meta Tags -->
+    <meta
+      name="title"
+      content="MatLoom: Layered Text-to-Material Generation in a Compact Program Space"
+    />
+    <meta
+      name="description"
+      content="MatLoom turns a text prompt into a short layered program for a surface material: editable, reproducible, and rendered live in the browser. On a 141-prompt benchmark it outranks three diffusion baselines on all four prompt-alignment metrics and wins 59.2% of blind human choices."
+    />
+    <meta
+      name="keywords"
+      content="text-to-material, material generation, PBR materials, procedural materials, layered DSL, program synthesis, large language models, computer graphics"
+    />
+    <meta name="author" content="Anson Y. Lam, Shuqing Li, Michael R. Lyu" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article" />
+    <meta
+      property="og:site_name"
+      content="The Chinese University of Hong Kong"
+    />
+    <meta
+      property="og:title"
+      content="MatLoom: Layered Text-to-Material Generation in a Compact Program Space"
+    />
+    <meta
+      property="og:description"
+      content="A text prompt becomes a short layered program for a surface material: editable, reproducible, and rendered live in the browser."
+    />
+    <meta property="og:url" content="https://yflam1.github.io/matloom/" />
+    <meta
+      property="og:image"
+      content="https://yflam1.github.io/matloom/figures/overview.png"
+    />
+    <meta property="og:image:width" content="1600" />
+    <meta property="og:image:height" content="716" />
+    <meta
+      property="og:image:alt"
+      content="The MatLoom pipeline: a text request becomes a layered program that is critiqued, revised, and explored across noise seeds"
+    />
+    <meta
+      property="article:published_time"
+      content="2026-09-30T00:00:00.000Z"
+    />
+    <meta property="article:author" content="Anson Y. Lam" />
+    <meta property="article:section" content="Research" />
+    <meta property="article:tag" content="text-to-material" />
+    <meta property="article:tag" content="procedural materials" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="MatLoom: Layered Text-to-Material Generation in a Compact Program Space"
+    />
+    <meta
+      name="twitter:description"
+      content="A text prompt becomes a short layered program for a surface material: editable, reproducible, and rendered live in the browser."
+    />
+    <meta
+      name="twitter:image"
+      content="https://yflam1.github.io/matloom/figures/overview.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="The MatLoom pipeline: a text request becomes a layered program that is critiqued, revised, and explored across noise seeds"
+    />
+
+    <!-- Academic/Research Specific -->
+    <meta
+      name="citation_title"
+      content="MatLoom: Layered Text-to-Material Generation in a Compact Program Space"
+    />
+    <meta name="citation_author" content="Lam, Anson Y." />
+    <meta name="citation_author" content="Li, Shuqing" />
+    <meta name="citation_author" content="Lyu, Michael R." />
+    <meta name="citation_publication_date" content="2026" />
+
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+
+    <title>
+      MatLoom: Layered Text-to-Material Generation in a Compact Program Space |
+      Anson Y. Lam, Shuqing Li, Michael R. Lyu
+    </title>
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Academicons (arXiv mark) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css"
+    />
+
+    <!-- MathJax: typesets the paper math in the abstract, \( ... \) inline -->
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["\\[", "\\]"]],
+          packages: { "[+]": ["ams", "boldsymbol"] },
+        },
+        options: {
+          skipHtmlTags: [
+            "script",
+            "noscript",
+            "style",
+            "textarea",
+            "pre",
+            "code",
+          ],
+        },
+        chtml: { scale: 0.98 },
+      };
+    </script>
+    <script
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+
+    <!-- Structured Data for Academic Papers -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ScholarlyArticle",
+        "headline": "MatLoom: Layered Text-to-Material Generation in a Compact Program Space",
+        "description": "MatLoom represents a material as a compact program of alpha-masked layers whose shared spatial expressions define coverage and PBR channels, generated and revised by pretrained language models without task-specific fine-tuning.",
+        "author": [
+          {
+            "@type": "Person",
+            "name": "Anson Y. Lam",
+            "affiliation": {
+              "@type": "Organization",
+              "name": "The Chinese University of Hong Kong"
+            }
+          },
+          {
+            "@type": "Person",
+            "name": "Shuqing Li",
+            "affiliation": {
+              "@type": "Organization",
+              "name": "The Chinese University of Hong Kong"
+            }
+          },
+          {
+            "@type": "Person",
+            "name": "Michael R. Lyu",
+            "affiliation": {
+              "@type": "Organization",
+              "name": "The Chinese University of Hong Kong"
+            }
+          }
+        ],
+        "datePublished": "2026-09-30",
+        "url": "https://yflam1.github.io/matloom/",
+        "image": "https://yflam1.github.io/matloom/figures/overview.png",
+        "keywords": [
+          "text-to-material",
+          "material generation",
+          "PBR materials",
+          "procedural materials",
+          "layered DSL",
+          "program synthesis",
+          "large language models"
+        ],
+        "abstract": "Material generation should produce not only an appearance, but also the rules that construct it. We introduce MatLoom, a compact, layer-oriented language for text-to-material generation with pretrained language models. Each program composes alpha-masked layers whose shared spatial expressions define coverage and physically based rendering (PBR) channels, making dependencies between patterns, color, and relief explicit. A standalone interpreter evaluates the program into material maps, while the source retains named fields and layer parameters for subsequent authoring. Without task-specific fine-tuning, our pipeline uses parser-guided repair and preview-based critique to revise material designs, then searches noise seeds while keeping each candidate's remaining source fixed. On a curated benchmark of 141 prompts evaluated with six backbones, our best-performing configuration achieves higher mean scores than three diffusion baselines on all four flat-layout prompt-alignment metrics. Its initial programs already exceed all three baselines on mean BLIPScore, before critique or seed search. Retained programs have a median length of 21 lines when pooled across backbones. In a blind four-way comparison involving 30 participants and 20 prompts, our renders receive 59.2% of choices, compared with 19.3% for the most-preferred baseline. Compact executable programs thus offer a way to generate prompt-aligned materials while retaining their construction as part of the asset.",
+        "isAccessibleForFree": true,
+        "license": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "mainEntity": {
+          "@type": "WebPage",
+          "@id": "https://yflam1.github.io/matloom/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/page/main.ts"></script>
+  </body>
+</html>

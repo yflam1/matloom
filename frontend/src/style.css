@@ -1,0 +1,1232 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+:root {
+  --bg: #1a1a1a;
+  --surface: #242424;
+  --surface2: #2e2e2e;
+  --border: #3a3a3a;
+  --text: #e0e0e0;
+  --dim: #888;
+  --accent: #4a9eff;
+  --error: #ff5a5a;
+  /* Default left-panel width. The divider overrides this per-element while
+     dragging; the collapse animation derives its slide-off distance from it,
+     so this is the one place to change the panel's resting width. */
+  --panel-width: 360px;
+}
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    13px / 1.4 "SF Mono",
+    Menlo,
+    monospace;
+}
+#app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── Layer panel ─────────────────────────────────────────────── */
+#panel {
+  width: var(--panel-width);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  transition: margin-left 0.2s ease;
+}
+#panel-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* Compact square buttons used for the collapse chevron and the ⋯ menu. */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  background: var(--surface2);
+  color: var(--dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.icon-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* ─── Toolbar overflow menu (Import / Export / Renderer) ──────────── */
+.toolbar-menu-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.toolbar-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+.toolbar-menu[hidden] {
+  display: none;
+}
+.menu-item {
+  text-align: left;
+  background: none;
+  color: var(--text);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font: inherit;
+}
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.menu-sep {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--border);
+}
+.menu-label {
+  padding: 2px 8px;
+  color: var(--dim);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.toolbar-menu .backend-switch {
+  margin: 2px 8px 4px;
+}
+/* Split the segmented control evenly so each half fills (and highlights) its
+   button instead of only the text run. */
+.toolbar-menu .bk-opt {
+  flex: 1;
+  text-align: center;
+}
+#btn-add {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font: inherit;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+#btn-add:hover {
+  filter: brightness(1.15);
+}
+#btn-reseed {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--surface2);
+  color: var(--dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+#btn-reseed[hidden] {
+  display: none;
+}
+#btn-reseed:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.reseed-ic {
+  font-size: 15px;
+  line-height: 1;
+}
+#reseed-count {
+  font-size: 11px;
+  color: var(--dim);
+}
+#btn-reseed:hover #reseed-count {
+  color: var(--text);
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+#status-dot {
+  margin-left: auto;
+}
+.dot-idle {
+  background: #555;
+}
+.dot-busy {
+  background: #f90;
+  animation: pulse 0.7s ease-in-out infinite alternate;
+}
+.dot-ok {
+  background: #4c4;
+}
+.dot-error {
+  background: var(--error);
+}
+@keyframes pulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.4;
+  }
+}
+#eval-time {
+  font-size: 11px;
+  color: var(--dim);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Renderer backend switch (WebGL / WebGPU) */
+.backend-switch {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+/* Tooltip shown when WebGPU is unavailable (data-tip set by app.js). The
+   disabled button passes hover through to this wrapper, so it triggers here. */
+.backend-switch[data-tip] {
+  position: relative;
+  overflow: visible;
+}
+.backend-switch[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10;
+  padding: 5px 8px;
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--text);
+  background: #111;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.bk-opt {
+  background: var(--surface2);
+  color: var(--dim);
+  border: none;
+  font:
+    10px / 1 "SF Mono",
+    Menlo,
+    monospace;
+  letter-spacing: 0.02em;
+  padding: 4px 7px;
+  cursor: pointer;
+}
+.bk-opt + .bk-opt {
+  border-left: 1px solid var(--border);
+}
+.bk-opt:hover:not(.active):not(:disabled) {
+  color: var(--text);
+}
+.bk-opt.active {
+  background: rgba(74, 158, 255, 0.18);
+  color: #cfe5ff;
+}
+.bk-opt:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+#layer-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ─── Definitions section ─────────────────────────────────────── */
+#defs-section {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+.defs-hdr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 4px;
+}
+.defs-title {
+  flex: 1;
+  min-width: 0;
+  color: var(--dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#defs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 6px 6px;
+  max-height: 32vh;
+  overflow-y: auto;
+}
+#defs-section.empty #defs-list {
+  display: none;
+}
+.dcard {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dcard-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dname {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font:
+    12px / 1.5 "SF Mono",
+    Menlo,
+    monospace;
+  padding: 3px 6px;
+  outline: none;
+}
+.dname:focus {
+  border-color: var(--accent);
+}
+.dname.err {
+  border-color: var(--error);
+}
+.deq {
+  color: var(--dim);
+}
+.ddel {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--dim);
+  font-size: 14px;
+  padding: 0 2px;
+}
+.ddel:hover {
+  color: var(--error);
+}
+.dname-err {
+  font-size: 10px;
+  color: var(--error);
+}
+
+/* ─── Layer card ──────────────────────────────────────────────── */
+.lcard {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.lhdr {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.lhdr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.leye {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--dim);
+  font-size: 12px;
+  padding: 0 2px;
+  line-height: 1;
+}
+.leye.on,
+.leye:hover {
+  color: var(--text);
+}
+.lname {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lcaret {
+  color: var(--dim);
+  font-size: 10px;
+  transition: transform 0.15s;
+}
+.lcard.open > .lhdr .lcaret {
+  transform: rotate(90deg);
+}
+.ldel {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--dim);
+  font-size: 14px;
+  padding: 0 2px;
+}
+.ldel:hover {
+  color: var(--error);
+}
+.ldup {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--dim);
+  font-size: 14px;
+  padding: 0 2px;
+}
+.ldup:hover {
+  color: var(--accent);
+}
+
+/* ─── Channel groups ──────────────────────────────────────────── */
+.lbody {
+  display: none;
+  padding: 4px 6px 6px;
+  border-top: 1px solid var(--border);
+}
+.lcard.open > .lbody {
+  display: block;
+}
+.cgrp {
+  margin-top: 4px;
+}
+.cghdr {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 3px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cghdr:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+/* A trailing unit like "(mm)" in a channel header stays as written (the header
+   itself is uppercased). */
+.cunit {
+  text-transform: none;
+}
+.cgcaret {
+  font-size: 9px;
+  transition: transform 0.12s;
+}
+.cgrp.open > .cghdr .cgcaret {
+  transform: rotate(90deg);
+}
+.cgbody {
+  display: none;
+  padding: 2px 0 0 8px;
+}
+.cgrp.open > .cgbody {
+  display: block;
+}
+.cfield {
+  margin-top: 3px;
+}
+.clbl {
+  font-size: 10px;
+  color: var(--dim);
+  margin-bottom: 1px;
+}
+.ceditor {
+  position: relative;
+}
+.ceditor input {
+  width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font:
+    12px / 1.5 "SF Mono",
+    Menlo,
+    monospace;
+  padding: 3px 6px;
+  outline: none;
+}
+.ceditor input:focus {
+  border-color: var(--accent);
+}
+/* While hovering a noise chip, its call is selected in the input — make that
+   selection pop and tint the field so it's easy to spot in a long expression. */
+.ceditor input.locating {
+  border-color: var(--accent);
+}
+.ceditor input.locating::selection {
+  background: var(--accent);
+  color: #fff;
+}
+.ceditor.err input {
+  border-color: var(--error);
+}
+.cerr {
+  font-size: 10px;
+  color: var(--error);
+  margin-top: 2px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+/* Auto-seeded noise chips: revealed seed + per-node reroll, under a field. */
+.cnoise {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+.cnoise-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 3px 1px 5px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.cnoise-call {
+  color: var(--dim);
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cnoise-seed,
+.cnoise-roll {
+  background: none;
+  border: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.cnoise-seed {
+  font-variant-numeric: tabular-nums;
+}
+.cnoise-seed:hover {
+  color: var(--accent);
+}
+.cnoise-seed.copied {
+  color: #4c4;
+}
+.cnoise-roll {
+  color: var(--dim);
+  font-size: 14px;
+  line-height: 1;
+}
+.cnoise-roll:hover {
+  color: var(--accent);
+}
+
+/* ─── Expression completion dropdown + signature popup ───────────── */
+/* Both are body-level singletons (position: fixed) so the panel's overflow
+   cannot clip them; the controller in app.js positions and toggles them. */
+.expr-menu {
+  position: fixed;
+  z-index: 1000;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  font:
+    12px / 1.4 "SF Mono",
+    Menlo,
+    monospace;
+}
+.expr-menu-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.expr-menu-item .name {
+  color: var(--text);
+}
+.expr-menu-item .summary {
+  flex: 1;
+  color: var(--dim);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.expr-menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.expr-menu-item.active {
+  background: rgba(74, 158, 255, 0.18);
+  color: #cfe5ff;
+}
+.expr-menu-item.active .name {
+  color: #cfe5ff;
+}
+
+.expr-sig {
+  position: fixed;
+  z-index: 1000;
+  max-width: 360px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 9px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  white-space: normal;
+  font:
+    12px / 1.5 "SF Mono",
+    Menlo,
+    monospace;
+}
+.expr-sig-params {
+  color: var(--text);
+}
+.expr-sig-param.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+.expr-sig-doc {
+  color: var(--dim);
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+/* Range toggle (0–1 / 0–255) inside channel group headers */
+.crng {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--dim);
+  font:
+    10px / 1 "SF Mono",
+    Menlo,
+    monospace;
+  padding: 1px 5px;
+  cursor: pointer;
+  letter-spacing: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.crng:hover {
+  border-color: #555;
+  color: var(--text);
+}
+.crng.crng-int {
+  border-color: var(--accent);
+  color: #cfe5ff;
+}
+
+/* Drag reorder */
+.lcard.dragging {
+  opacity: 0.4;
+}
+.lcard.dragover {
+  outline: 2px solid var(--accent);
+}
+
+/* ─── Divider ─────────────────────────────────────────────────── */
+#divider {
+  width: 4px;
+  cursor: col-resize;
+  background: var(--border);
+  flex-shrink: 0;
+}
+#divider:hover {
+  background: var(--accent);
+}
+
+/* ─── Collapsible panel ───────────────────────────────────────── */
+/* Desktop: collapse by sliding the full-width panel off the left edge (clipped
+   by #app's overflow:hidden) rather than shrinking its width — that keeps the
+   content from reflowing, so layer names never flash "…" or wrap mid-animation.
+   The negative margin reclaims the flex space so the canvas grows to fill it. */
+#app.panel-collapsed #panel {
+  margin-left: calc(-1 * var(--panel-width));
+  border-right: 0;
+}
+#app.panel-collapsed #divider {
+  display: none;
+}
+
+/* Floating opener shown only while the panel is collapsed (top-left of the
+   viewer). */
+.panel-fab {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 40;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(20, 20, 22, 0.72);
+  backdrop-filter: blur(10px);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+.panel-fab:hover {
+  border-color: var(--accent);
+}
+#app.panel-collapsed .panel-fab {
+  display: inline-flex;
+}
+
+/* Dim backdrop behind the mobile drawer; never shown on desktop. */
+#panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: none;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Viewer ──────────────────────────────────────────────────── */
+#viewer-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+#render-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+/* View controls: a collapsible section in the left panel (above Definitions),
+   not a floating overlay — the canvas stays unobstructed at every size. The
+   header mirrors the Definitions section's look. */
+#viewer-controls {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+.vc-hdr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 8px 4px;
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+.vc-hdr-title {
+  flex: 1;
+  text-align: left;
+  color: var(--dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.vc-hdr:hover .vc-hdr-title,
+.vc-hdr:hover .vc-hdr-caret {
+  color: var(--text);
+}
+.vc-hdr-caret {
+  color: var(--dim);
+  font-size: 10px;
+  line-height: 1;
+  transition: transform 0.15s;
+}
+#viewer-controls.collapsed .vc-hdr-caret {
+  transform: rotate(-90deg);
+}
+.vc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 8px 8px;
+}
+#viewer-controls.collapsed .vc-body {
+  display: none;
+}
+/* Compact inline pill toggle (Crop), sitting in the resolution row. */
+.vc-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface2);
+  color: var(--dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+.vc-pill:hover {
+  border-color: #555;
+  background: #363636;
+  color: var(--text);
+}
+.vc-pill.active {
+  background: rgba(74, 158, 255, 0.18);
+  border-color: var(--accent);
+  color: #cfe5ff;
+}
+.vc-pill .tool-ic {
+  font-size: 12px;
+}
+/* Disabled numeric inputs (e.g. while a value is managed elsewhere). */
+.vc-num:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.vc-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.vc-row {
+  display: grid;
+  grid-template-columns: 16px 1fr 16px 1fr 26px;
+  align-items: center;
+  gap: 5px 6px;
+}
+.vc-res {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.vc-axis {
+  color: var(--dim);
+  font-size: 11px;
+  width: 12px;
+}
+.vc-arrow,
+.vc-times {
+  color: var(--dim);
+  font-size: 11px;
+  text-align: center;
+}
+.vc-num {
+  width: 65px;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 6px;
+  outline: none;
+}
+/* In the panel the inputs fill their grid/flex tracks instead of a fixed
+   width, so the rows adapt from the 240px minimum panel to the 600px max. */
+.vc-row .vc-num {
+  width: auto;
+  min-width: 0;
+}
+.vc-res .vc-num {
+  width: auto;
+  flex: 1;
+  min-width: 0;
+}
+.vc-res .vc-pill {
+  flex-shrink: 0;
+}
+.vc-num:hover {
+  border-color: #4a4a4a;
+}
+.vc-num:focus {
+  border-color: var(--accent);
+}
+/* Hide the native number spinners for a cleaner look */
+.vc-num::-webkit-outer-spin-button,
+.vc-num::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.vc-num {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Toggle buttons */
+.vc-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 2px;
+}
+/* Reset is an action, not a toggle: separate it from the toggle rows with a
+   divider and give it a quieter, un-accented look. */
+.vc-actions-reset {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+/* Separate the Axes/Y-up toggle row from the resolution inputs above with the
+   same divider treatment as the Reset row. */
+.vc-actions-divided {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.tool-btn.vc-reset {
+  color: var(--dim);
+}
+.tool-btn.vc-reset:hover {
+  color: var(--text);
+}
+.tool-btn {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 11px;
+  padding: 4px 6px;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+.tool-btn:hover {
+  border-color: #555;
+  background: #363636;
+}
+.tool-btn.active {
+  background: rgba(74, 158, 255, 0.18);
+  border-color: var(--accent);
+  color: #cfe5ff;
+}
+.tool-ic {
+  font-size: 13px;
+  line-height: 1;
+}
+/* Shortcut badge revealed on hover */
+.tool-key {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  font-family: inherit;
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 6px;
+  color: var(--text);
+  background: #111;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition:
+    opacity 0.12s,
+    transform 0.12s;
+}
+.tool-btn:hover .tool-key,
+.vc-pill:hover .tool-key {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Swap buttons */
+.swap-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  color: var(--dim);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s,
+    transform 0.15s;
+  user-select: none;
+}
+.swap-btn:hover {
+  color: var(--text);
+  border-color: #555;
+  background: #363636;
+}
+.swap-btn:active {
+  transform: scale(0.92);
+}
+
+/* ─── Import / Export ─────────────────────────────────────────── */
+.io-toolbtn {
+  background: var(--surface2);
+  color: var(--dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 9px;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.io-toolbtn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.io-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+.io-modal[hidden] {
+  display: none;
+}
+.io-dialog {
+  width: min(640px, 90vw);
+  max-height: 90vh;
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+.io-title {
+  font-size: 14px;
+  color: var(--text);
+}
+.io-text {
+  width: 100%;
+  height: 180px;
+  resize: vertical;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  font: inherit;
+  line-height: 1.5;
+}
+.io-text:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.io-err {
+  min-height: 16px;
+  font-size: 11px;
+  color: var(--error);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.io-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.io-spacer {
+  flex: 1;
+}
+.io-btn {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+.io-btn:hover {
+  border-color: var(--accent);
+}
+.io-apply {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.io-apply:hover {
+  filter: brightness(1.15);
+}
+
+/* ─── Randomize dialog form ───────────────────────────────────── */
+.rnd-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rnd-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rnd-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted, #888);
+}
+.rnd-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+}
+.rnd-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+}
+.rnd-label {
+  color: var(--text);
+}
+.rnd-input {
+  width: 88px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font: inherit;
+  font-size: 12px;
+}
+.rnd-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.rnd-check {
+  justify-content: flex-start;
+}
+.rnd-check .rnd-input {
+  width: auto;
+}
+@media (max-width: 520px) {
+  .rnd-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ─── Mobile / narrow screens ─────────────────────────────────── */
+/* The panel becomes a slide-in overlay drawer (over the canvas) instead of an
+   in-flow column, so the canvas always gets the full width on a phone. */
+@media (max-width: 760px) {
+  #panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: min(86vw, 340px);
+    z-index: 200;
+    border-right: 1px solid var(--border);
+    transform: translateX(0);
+    transition: transform 0.2s ease;
+  }
+  /* Drawer closed = collapsed. The mobile drawer hides via transform, so cancel
+     the desktop slide-off margin and keep its full width. */
+  #app.panel-collapsed #panel {
+    width: min(86vw, 340px);
+    margin-left: 0;
+    border-right: 1px solid var(--border);
+    transform: translateX(-100%);
+  }
+  #divider {
+    display: none;
+  }
+  #app:not(.panel-collapsed) #panel {
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+  }
+  #app:not(.panel-collapsed) #panel-backdrop {
+    display: block;
+  }
+}

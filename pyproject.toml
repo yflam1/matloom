@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "matloom"
+dynamic = ["version"]
+dependencies = [
+  "clip@git+https://github.com/openai/CLIP.git",
+  "cma",                                         # CMA-ES parameter polish (matloom.engine.polish)
+  "datasets",
+  "defaultlist",
+  "diffusers",
+  "ftfy",
+  "json_repair",
+  "lxml",
+  "numba",
+  "open_clip_torch>=3.1",                        # MobileCLIP2 archs (trajectory-selection verifier)
+  "openai",
+  "opencv-python<5",
+  "opensimplex==0.4.5.1",
+  "pillow",
+  "pydantic",
+  "pytorch-lightning",
+  "pyyaml",
+  "requests",
+  "rich",
+  "sentence-transformers",
+  "torchmetrics[image,multimodal]",
+  "tqdm",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+
+[project.optional-dependencies]
+# Everything co-installs in ONE Python 3.13 environment, but in stages — see
+# "Installation" in README.md. `bpy` forces 3.13; `transformers==4.49.0` is shared
+# by vqascore and (a patched) LAVIS.
+blender = ["bpy==5.1.2"]
+# t2v-metrics is intentionally NOT in this extra: it depends on `image-reward`,
+# which pins `timm==0.6.13` and conflicts with `open-clip>=3.1` (MobileCLIP2 needs
+# `timm>=1.0.17`). Install t2v-metrics separately with `--no-deps` so image-reward
+# never reaches the resolver — see README "Installation".
+vqascore = ["hydra-core==1.3.2", "transformers==4.49.0"]
+# NOTE: BLIP scoring needs `salesforce-lavis`, but it is intentionally NOT listed
+# here so this file never embeds a personal fork URL. Install it as a separate
+# step — see "Installation" in README.md (git fork for development, or a vendored
+# local checkout for an anonymized paper submission).
+
+[project.scripts]
+blipscore = "matloom.metrics.blipscore:_cli"
+clipscore = "matloom.metrics.clipscore:_cli"
+matloom-export = "matloom.engine.main:_cli"
+matloom-generate = "matloom.engine.generate:_cli"
+matloom-text2dsl = "matloom.engine.text2dsl:_cli"
+matloom-render = "matloom.render:_cli"
+
+[tool.setuptools]
+packages = ["matloom"]
+
+[tool.setuptools.dynamic]
+version = { attr = "matloom.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+filterwarnings = [
+  # The engine deliberately warns on division by zero; assert it explicitly
+  # in the relevant tests rather than letting it escape as an error elsewhere.
+  "ignore:Division by zero:RuntimeWarning",
+]

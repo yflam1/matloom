@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>MatLoom Viewer</title>
+    <!-- Paint the app's dark background before any CSS/JS arrives, and keep
+         the static app shell (empty panel, inputs) invisible until the module
+         has booted — otherwise that half-built chrome paints for a moment and
+         reads as a loading-page flash. main.ts flips both to .app-ready. -->
+    <style>
+      html,
+      body {
+        background: #1a1a1a;
+      }
+      #app:not(.app-ready) {
+        visibility: hidden;
+      }
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #1a1a1a;
+        color: #9a9a9a;
+        font:
+          500 14px/1.4 system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      #boot.app-ready {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <aside id="panel">
+        <header id="panel-toolbar">
+          <button
+            id="btn-panel-collapse"
+            class="icon-btn"
+            type="button"
+            title="Collapse panel"
+            aria-label="Collapse panel"
+          >
+            «
+          </button>
+          <button id="btn-add">+ Layer</button>
+          <span id="status-dot" class="dot dot-idle"></span>
+          <span id="eval-time"></span>
+          <button
+            id="btn-reseed"
+            type="button"
+            title="Regenerate random noise"
+            hidden
+          >
+            <span class="reseed-ic">⟳</span> <span id="reseed-count"></span>
+          </button>
+          <div class="toolbar-menu-wrap">
+            <button
+              id="btn-menu"
+              class="icon-btn"
+              type="button"
+              title="More actions"
+              aria-label="More actions"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              ⋯
+            </button>
+            <div id="toolbar-menu" class="toolbar-menu" hidden>
+              <button
+                id="btn-import"
+                class="menu-item"
+                type="button"
+                title="Import a material from text or a .txt file"
+              >
+                Import
+              </button>
+              <button
+                id="btn-export"
+                class="menu-item"
+                type="button"
+                title="Export the visible layers to a .txt file"
+              >
+                Export
+              </button>
+              <button
+                id="btn-randomize"
+                class="menu-item"
+                type="button"
+                title="Generate a random material"
+              >
+                Randomize
+              </button>
+              <div class="menu-sep"></div>
+              <div class="menu-label">Renderer</div>
+              <div
+                id="backend-switch"
+                class="backend-switch"
+                role="group"
+                aria-label="Renderer backend"
+              >
+                <button
+                  id="backend-webgl"
+                  class="bk-opt"
+                  type="button"
+                  data-backend="webgl"
+                >
+                  WebGL
+                </button>
+                <button
+                  id="backend-webgpu"
+                  class="bk-opt"
+                  type="button"
+                  data-backend="webgpu"
+                >
+                  WebGPU
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+        <section id="viewer-controls">
+          <button
+            id="vc-toggle"
+            class="vc-hdr"
+            type="button"
+            aria-label="Collapse view controls"
+            aria-expanded="true"
+          >
+            <span class="vc-hdr-title">View</span>
+            <span class="vc-hdr-caret">▾</span>
+          </button>
+          <div class="vc-body">
+            <div class="vc-grid">
+              <div class="vc-row">
+                <span class="vc-axis">X</span>
+                <input
+                  id="in-x1"
+                  class="vc-num"
+                  type="number"
+                  step="0.1"
+                  aria-label="x1"
+                />
+                <span class="vc-arrow">→</span>
+                <input
+                  id="in-x2"
+                  class="vc-num"
+                  type="number"
+                  step="0.1"
+                  aria-label="x2"
+                />
+                <button
+                  id="btn-swap-x"
+                  class="swap-btn"
+                  type="button"
+                  aria-label="Swap x1 and x2"
+                  title="Swap x1 ↔ x2"
+                >
+                  ⇄
+                </button>
+              </div>
+              <div class="vc-row">
+                <span class="vc-axis">Y</span>
+                <input
+                  id="in-y1"
+                  class="vc-num"
+                  type="number"
+                  step="0.1"
+                  aria-label="y1"
+                />
+                <span class="vc-arrow">→</span>
+                <input
+                  id="in-y2"
+                  class="vc-num"
+                  type="number"
+                  step="0.1"
+                  aria-label="y2"
+                />
+                <button
+                  id="btn-swap-y"
+                  class="swap-btn"
+                  type="button"
+                  aria-label="Swap y1 and y2"
+                  title="Swap y1 ↔ y2"
+                >
+                  ⇄
+                </button>
+              </div>
+            </div>
+            <div class="vc-res">
+              <input
+                id="in-w"
+                class="vc-num"
+                type="number"
+                min="1"
+                step="1"
+                aria-label="width"
+              />
+              <span class="vc-times">×</span>
+              <input
+                id="in-h"
+                class="vc-num"
+                type="number"
+                min="1"
+                step="1"
+                aria-label="height"
+              />
+              <button
+                id="btn-crop"
+                class="vc-pill"
+                type="button"
+                title="Crop — render only the visible region at your chosen resolution; zoom in for more detail"
+              >
+                <span class="tool-ic">⛶</span><span>Crop</span>
+                <kbd class="tool-key">C</kbd>
+              </button>
+            </div>
+            <div class="vc-actions vc-actions-divided">
+              <button id="btn-axes" class="tool-btn" type="button">
+                <span class="tool-ic">⛶</span><span class="tool-txt">Axes</span>
+                <kbd class="tool-key">X</kbd>
+              </button>
+              <button id="btn-yflip" class="tool-btn" type="button">
+                <span class="tool-ic">↑</span><span class="tool-txt">Y-up</span>
+                <kbd class="tool-key">Y</kbd>
+              </button>
+            </div>
+            <div class="vc-actions">
+              <button id="btn-ambient" class="tool-btn" type="button">
+                <span class="tool-ic">☁︎</span
+                ><span class="tool-txt">Ambient</span>
+                <kbd class="tool-key">A</kbd>
+              </button>
+              <button id="btn-direct" class="tool-btn" type="button">
+                <span class="tool-ic">☀︎</span
+                ><span class="tool-txt">Direct</span>
+                <kbd class="tool-key">D</kbd>
+              </button>
+            </div>
+            <div class="vc-actions">
+              <button
+                id="btn-normal"
+                class="tool-btn"
+                type="button"
+                title="Normal map — relief shading"
+              >
+                <span class="tool-txt">Normal</span>
+                <kbd class="tool-key">N</kbd>
+              </button>
+              <button
+                id="btn-occlusion"
+                class="tool-btn"
+                type="button"
+                title="Ambient Occlusion — shading that simulates how much ambient light reaches each point"
+              >
+                <span class="tool-txt">AO</span>
+                <kbd class="tool-key">O</kbd>
+              </button>
+              <button
+                id="btn-displace"
+                class="tool-btn"
+                type="button"
+                title="Displacement — real 3D height; orbit to see it"
+              >
+                <span class="tool-txt">Displace</span>
+                <kbd class="tool-key">H</kbd>
+              </button>
+            </div>
+            <div class="vc-actions vc-actions-reset">
+              <button
+                id="btn-reset"
+                class="tool-btn vc-reset"
+                type="button"
+                title="Reset the camera to the default angle and zoom"
+              >
+                <span class="tool-ic">↺</span
+                ><span class="tool-txt">Reset camera</span>
+                <kbd class="tool-key">R</kbd>
+              </button>
+            </div>
+          </div>
+        </section>
+        <section id="defs-section" class="empty">
+          <div class="defs-hdr">
+            <span class="defs-title">Definitions</span>
+            <button
+              id="btn-add-def"
+              class="io-toolbtn"
+              type="button"
+              title="Add a reusable named expression you can reference from any channel"
+            >
+              + Define
+            </button>
+          </div>
+          <div id="defs-list"></div>
+        </section>
+        <div id="layer-list"></div>
+      </aside>
+
+      <div id="panel-backdrop"></div>
+
+      <div id="divider"></div>
+
+      <main id="viewer-wrap">
+        <button
+          id="panel-fab"
+          class="panel-fab"
+          type="button"
+          title="Show panel"
+          aria-label="Show panel"
+        >
+          ☰
+        </button>
+        <canvas id="render-canvas"></canvas>
+      </main>
+    </div>
+
+    <div id="boot" role="status">Loading viewer…</div>
+    <script type="module" src="/src/app/main.ts"></script>
+  </body>
+</html>

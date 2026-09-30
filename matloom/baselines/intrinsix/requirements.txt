@@ -1,0 +1,12 @@
+diffusers @ git+https://github.com/huggingface/diffusers.git@33fafe3d143ca8380a9e405e7acfa69091d863fb
+transformers==4.45.1
+accelerate==0.34.2
+sentencepiece==0.2.0
+protobuf==4.25.5
+einops==0.8.1
+torch==2.8.0
+torchvision==0.23.0
+huggingface_hub
+numpy
+Pillow
+tqdm

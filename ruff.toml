@@ -1,0 +1,18 @@
+# Ruff configuration. Kept as a standalone file rather than under [tool.ruff] in
+# pyproject.toml so the packaging metadata stays clean; ruff auto-discovers this.
+
+# Vendored baseline code (MatFuse's LDM, IntrinsiX's model) is frozen at the
+# archived-run stack for reproducibility; it is third-party-derived and never
+# linted. single-env-lavis is a scratch env dir, not project code.
+exclude = ["matloom/baselines"]
+
+[lint]
+# `config=dict(arbitrary_types_allowed=True)` is the idiomatic pydantic
+# `validate_call` form; keep it as a call rather than a dict literal.
+ignore = ["C408"]
+
+[lint.per-file-ignores]
+# noise.py is numba JIT: the Worley class holds read-only lookup-table dicts
+# (RUF012) and uses explicit int() casts on math.floor whose return type is
+# version-dependent under JIT (RUF046). Both are intentional there.
+"matloom/engine/noise.py" = ["RUF012", "RUF046"]

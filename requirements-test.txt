@@ -1,0 +1,24 @@
+# Light dependency set for running the core unit tests (tests/).
+#
+# These cover matloom/engine/, matloom/utils/{maths,dtypes,anybase}.py,
+# matloom/utils/llm/ (the LLM client, exercised against a mock — see
+# tests/utils/test_llm.py) and matloom/bnf.py — all pure logic. The heavy
+# ML/Blender extras in pyproject.toml (torch, clip, diffusers, transformers,
+# bpy, …) are NOT needed: matloom/utils/misc.py guards `import torch` with
+# try/except, so the core imports cleanly without it. Install the package
+# itself with `pip install --no-deps -e .` so these stay the only third-party
+# deps.
+pytest>=8
+cma
+numpy
+numba
+opensimplex==0.4.5.1
+pydantic
+pillow
+opencv-python-headless<5
+rich
+typing_extensions
+pyyaml
+# Pure-Python, lightweight: needed for the torch-free LLM-client unit tests.
+openai
+json_repair
