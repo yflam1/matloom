@@ -16,7 +16,7 @@
 <!-- Add an arXiv link here once the preprint is up. -->
 <p align="center">
   <a href="https://yflam1.github.io/matloom/"><strong>Project Page</strong></a> |
-  <a href="https://arxiv.org/abs/XXXX.XXXXX"><strong>arXiv</strong></a>
+  <a href="https://arxiv.org/abs/2609.40322"><strong>arXiv</strong></a>
 </p>
 
 ## 📝 Abstract
@@ -98,7 +98,7 @@ If you find this code useful, please cite our paper.
 @article{lam2026matloom,
   title={{MatLoom}: Layered Text-to-Material Generation in a Compact Program Space},
   author={Lam, Anson Y. and Li, Shuqing and Lyu, Michael R.},
-  journal={arXiv preprint arXiv:XXXX.XXXXX},
+  journal={arXiv preprint arXiv:2609.40322},
   year={2026}
 }
 ```
